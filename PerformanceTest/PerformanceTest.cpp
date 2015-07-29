@@ -1,3 +1,4 @@
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -21,6 +22,10 @@ int main(int argc, char** argv)
   std::string inputText(std::istream_iterator<char>(inputFile), (std::istream_iterator<char>()));
   std::istringstream inputTextStream(inputText);
 
+  auto startTime = std::chrono::high_resolution_clock::now();
   auto rootNode = ParadoxNode::Parse(inputTextStream);
-  std::cout << rootNode;
+  auto endTime = std::chrono::high_resolution_clock::now();
+
+  auto timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+  std::cout << timeElapsed.count() << " ms\n";
 }
