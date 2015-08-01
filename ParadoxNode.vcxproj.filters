@@ -3,9 +3,11 @@
   <ItemGroup>
     <ClInclude Include="ParadoxNode.h" />
     <ClInclude Include="StringUtilities.h" />
+    <ClInclude Include="ParadoxNodeParser.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ParadoxNode.cpp" />
     <ClCompile Include="StringUtilities.cpp" />
+    <ClCompile Include="ParadoxNodeParser.cpp" />
   </ItemGroup>
 </Project>

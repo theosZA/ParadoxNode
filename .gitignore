@@ -4,6 +4,6 @@ Release/*
 */Release/*
 *.opensdf
 *.sdf
-*.v12.suo
+*.*.suo
 *.vcxproj.user
 /log.txt

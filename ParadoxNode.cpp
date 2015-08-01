@@ -1,8 +1,6 @@
 #include "ParadoxNode.h"
 
-#include <sstream>
-
-#include "StringUtilities.h"
+#include "ParadoxNodeParser.h"
 
 std::shared_ptr<ParadoxNode> ParadoxNode::CreateRoot()
 {
@@ -16,11 +14,19 @@ std::shared_ptr<ParadoxNode> ParadoxNode::Create(std::string key)
   return node;
 }
 
-std::shared_ptr<ParadoxNode> ParadoxNode::Create(std::string key, std::string value)
+std::shared_ptr<ParadoxNode> ParadoxNode::Create(std::string key, std::string textValue)
 {
   auto node = CreateRoot();
   node->key = std::move(key);
-  node->value = std::move(value);
+  node->textValue = std::move(textValue);
+  return node;
+}
+
+std::shared_ptr<ParadoxNode> ParadoxNode::Create(std::string key, std::vector<int> intValues)
+{
+  auto node = CreateRoot();
+  node->key = std::move(key);
+  node->intValues = std::move(intValues);
   return node;
 }
 
@@ -32,42 +38,9 @@ std::shared_ptr<ParadoxNode> ParadoxNode::Create(std::string key, std::vector<st
   return node;
 }
 
-std::shared_ptr<ParadoxNode> ParadoxNode::Parse(std::istream& in)
+std::shared_ptr<ParadoxNode> ParadoxNode::Parse(std::string content, const std::string& sourceName)
 {
-  auto root = ParadoxNode::CreateRoot();
-
-  std::string currentNodeText;
-  int openBraces = 0;
-  while (!in.eof() && !in.fail())
-  {
-    std::string currentLine;
-    std::getline(in, currentLine);
-
-    auto commentPos = currentLine.find('#');
-    if (commentPos != std::string::npos)
-      currentLine.erase(commentPos); // remove any comment
-
-    if (!currentNodeText.empty())
-      currentNodeText.push_back('\n');  // preserve new-lines within an item
-    currentNodeText += currentLine;
-    openBraces += std::count(currentLine.begin(), currentLine.end(), '{');
-    openBraces -= std::count(currentLine.begin(), currentLine.end(), '}');
-    if (openBraces <= 0)
-    {
-      auto lastCharPos = currentNodeText.find_last_not_of(" \t");
-      if (lastCharPos != std::string::npos && currentNodeText[lastCharPos] != '=')
-      {
-        auto newNode = CreateRoot();
-        newNode->ParseNode(currentNodeText);
-        if (!newNode->key.empty())
-          root->children.push_back(newNode);
-        currentNodeText.clear();
-        openBraces = 0;
-      }
-    }
-  }
-
-  return root;
+  return ParadoxNodeParser::Parse(content, sourceName);
 }
 
 std::ostream& operator<<(std::ostream& out, const std::shared_ptr<ParadoxNode>& node)
@@ -82,16 +55,36 @@ void ParadoxNode::SetKey(std::string key)
   this->key = std::move(key);
 }
 
-void ParadoxNode::SetValue(std::string value)
+void ParadoxNode::SetValue(std::string textValue)
 {
-  this->value = std::move(value);
+  ClearValue();
+  this->textValue = std::move(textValue);
+}
+
+void ParadoxNode::SetValues(std::vector<int> intValues)
+{
+  ClearValue();
+  this->intValues = std::move(intValues);
+}
+
+void ParadoxNode::AddIntegerValue(int intValue)
+{
+  textValue.clear();
   children.clear();
+  intValues.push_back(intValue);
+}
+
+void ParadoxNode::SetChildren(std::vector<std::shared_ptr<ParadoxNode>> children)
+{
+  ClearValue();
+  this->children = std::move(children);
 }
 
 void ParadoxNode::AddChild(std::shared_ptr<ParadoxNode> child)
 {
+  textValue.clear();
+  intValues.clear();
   children.push_back(std::move(child));
-  value.clear();
 }
 
 std::shared_ptr<ParadoxNode> ParadoxNode::GetChild(const std::string& childKey)
@@ -104,41 +97,45 @@ std::shared_ptr<ParadoxNode> ParadoxNode::GetChild(const std::string& childKey)
 
 std::string ParadoxNode::GetValueUnquoted() const
 {
-  if (value.size() > 2)
+  if (textValue.size() > 2)
   {
-    char start = value.front();
-    if ((start == '\'' || start == '"') && start == value.back())
-      return value.substr(1, value.size() - 2);
+    char start = textValue.front();
+    if ((start == '\'' || start == '"') && start == textValue.back())
+      return textValue.substr(1, textValue.size() - 2);
   }
   // No quotes - just return the unaltered value.
-  return value;
+  return textValue;
 }
 
-void ParadoxNode::ParseNode(const std::string& nodeText)
+void ParadoxNode::ClearValue()
 {
-  // Node is split as key = value.
-  auto equalPos = nodeText.find('=');
-
-  key = TrimWhitespace(nodeText.substr(0, equalPos));
-  if (key.empty())
-    return; // All items must have a key.
-
-  value = TrimWhitespace(nodeText.substr(equalPos + 1));
-  if (value.size() >= 2 && value.front() == '{' && value.back() == '}')
-  { // This is a complex value that needs to be further passed.
-    children = std::move(Parse(std::istringstream(value.substr(1, value.size() - 2)))->children);
-    value.clear();
-  }
+  textValue.clear();
+  intValues.clear();
+  children.clear();
 }
 
 void ParadoxNode::Output(std::ostream& out, int depth) const
 {
+  if (key.empty())
+  { // Only child nodes are allowed.
+    for (const auto& child : children)
+      child->Output(out, depth);
+    return;
+  }
+
   std::string indentation(2 * depth, ' ');
 
   out << indentation << key << " = ";
 
-  if (!value.empty())
-    out << value << '\n';
+  if (!textValue.empty())
+    out << textValue << '\n';
+  else if (!intValues.empty())
+  {
+    out << '{';
+    for (const auto& intValue : intValues)
+      out << ' ' << intValue;
+    out << " }\n";
+  }
   else
   {
     out << "{\n";
