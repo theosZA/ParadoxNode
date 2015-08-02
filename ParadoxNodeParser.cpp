@@ -84,7 +84,10 @@ template<> struct Action<TextValue>
 {
   static void apply(const pegtl::input& in, std::stack<ActiveNodeSet>& nodes)
   {
-    nodes.top().back()->SetValue(in.string());
+    std::string textValue = in.string();
+    auto finalCharPos = textValue.find_last_not_of(" \t\n");
+    if (finalCharPos != std::string::npos)
+      nodes.top().back()->SetValue(textValue.substr(0, finalCharPos + 1));
   }
 };
 
