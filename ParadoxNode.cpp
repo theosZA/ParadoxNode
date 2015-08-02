@@ -87,7 +87,7 @@ void ParadoxNode::AddChild(std::shared_ptr<ParadoxNode> child)
   children.push_back(std::move(child));
 }
 
-std::shared_ptr<ParadoxNode> ParadoxNode::GetChild(const std::string& childKey)
+std::shared_ptr<ParadoxNode> ParadoxNode::GetChild(const std::string& childKey) const
 {
   for (const auto& child : children)
     if (child->key == childKey)

@@ -37,7 +37,7 @@ public:
   const std::vector<std::shared_ptr<ParadoxNode>>& GetChildren() const { return children; }
 
   // Returns the first child with the given key. If there is no such child then nullptr is returned instead.
-  std::shared_ptr<ParadoxNode> GetChild(const std::string& childKey);
+  std::shared_ptr<ParadoxNode> GetChild(const std::string& childKey) const;
 
   // Returns the value, but if the value has quotes (' or ") around it, then those quotes are stripped.
   std::string GetValueUnquoted() const;
