@@ -1,9 +1,10 @@
 Debug/*
 Release/*
+ParadoxNodeRelease/*
 */Debug/*
 */Release/*
 *.opensdf
 *.sdf
-*.*.suo
+*.suo
 *.vcxproj.user
 /log.txt
