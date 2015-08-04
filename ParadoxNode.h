@@ -21,6 +21,7 @@ public:
 
   // Returns the root node of a Paradox Script Syntax file. Note that the root node will have no key.
   static std::shared_ptr<ParadoxNode> Parse(std::string content, const std::string& sourceName);
+  static std::shared_ptr<ParadoxNode> ParseFromFile(const std::string& fullPath);
 
   friend std::ostream& operator<<(std::ostream&, const std::shared_ptr<ParadoxNode>&);
 
