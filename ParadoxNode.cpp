@@ -1,6 +1,8 @@
 #include "ParadoxNode.h"
 
 #include <cstdio>
+#include <fstream>
+#include <stdexcept>
 
 #include "ParadoxNodeParser.h"
 
@@ -69,6 +71,14 @@ std::shared_ptr<ParadoxNode> ParadoxNode::ParseFromFile(const std::string & full
   auto sourceFileName = (separator == std::string::npos ? fullPath : fullPath.substr(separator + 1));
 
   return ParadoxNode::Parse(ReadFile(fullPath.c_str()), sourceFileName);
+}
+
+void ParadoxNode::WriteToFile(const std::string& fullPath) const
+{
+  std::ofstream out(fullPath);
+  if (!out)
+    throw std::runtime_error("Error writing file " + fullPath);
+  Output(out, 0);
 }
 
 std::ostream& operator<<(std::ostream& out, const std::shared_ptr<ParadoxNode>& node)

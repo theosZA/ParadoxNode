@@ -23,6 +23,8 @@ public:
   static std::shared_ptr<ParadoxNode> Parse(std::string content, const std::string& sourceName);
   static std::shared_ptr<ParadoxNode> ParseFromFile(const std::string& fullPath);
 
+  void WriteToFile(const std::string& fullPath) const;
+
   friend std::ostream& operator<<(std::ostream&, const std::shared_ptr<ParadoxNode>&);
 
   void SetKey(std::string key);
